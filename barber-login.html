@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل حلاق جديد</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1>✂️ تسجيل كحلاق</h1>
+  </header>
+
+  <main class="main-content">
+    <form id="barber-form" class="barber-form">
+      <input type="text" id="name" placeholder="اسمك الكامل" required><br>
+      <input type="text" id="salonName" placeholder="اسم الصالون" required><br>
+      <input type="email" id="email" placeholder="البريد الإلكتروني" required><br>
+      <input type="password" id="password" placeholder="كلمة المرور" required><br>
+      <input type="text" id="photoURL" placeholder="رابط صورتك (اختياري)"><br>
+      <button type="submit">تسجيل</button>
+    </form>
+  </main>
+
+  <footer class="footer">
+    <a href="index.html" class="barber-login-link">العودة للرئيسية</a>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"></script>
+  <script>
+    // انسخ كود firebaseConfig هنا
+    const firebaseConfig = {
+      apiKey: "AIzaSyXXXXXX",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.getElementById('barber-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const salonName = document.getElementById('salonName').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const photoURL = document.getElementById('photoURL').value;
+
+      try {
+        // إنشاء مستخدم جديد
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // الحصول على الموقع الجغرافي للحلاق
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          // حفظ بيانات الحلاق في Firestore
+          await db.collection('barbers').doc(user.uid).set({
+            name,
+            salonName,
+            email,
+            photoURL,
+            lat,
+            lon,
+            rating: 5,
+            waiting: 0
+          });
+
+          alert('تم تسجيلك بنجاح!');
+          window.location.href = 'index.html';
+        }, (error) => {
+          alert('يجب السماح بتحديد الموقع!');
+        });
+
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
